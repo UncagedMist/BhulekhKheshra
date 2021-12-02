@@ -4,33 +4,27 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Typeface;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.cardview.widget.CardView;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.google.android.gms.ads.AdError;
-import com.google.android.gms.ads.AdRequest;
-import com.google.android.gms.ads.FullScreenContentCallback;
-import com.google.android.gms.ads.LoadAdError;
-import com.google.android.gms.ads.interstitial.InterstitialAd;
-import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback;
 import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 
+import tbc.uncagedmist.bhulekhkheshra.Ads.GoogleAds;
 import tbc.uncagedmist.bhulekhkheshra.Common.Common;
+import tbc.uncagedmist.bhulekhkheshra.Common.MyApplicationClass;
 import tbc.uncagedmist.bhulekhkheshra.Fragments.ResultFragment;
 import tbc.uncagedmist.bhulekhkheshra.Interface.ItemClickListener;
 import tbc.uncagedmist.bhulekhkheshra.Model.Item;
@@ -40,8 +34,6 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> {
 
     Context context;
     ArrayList<Item> items;
-
-    private InterstitialAd mInterstitialAd;
 
     public MyAdapter(Context context, ArrayList<Item> items) {
         this.context = context;
@@ -55,7 +47,9 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> {
         View view = LayoutInflater.from(context)
                 .inflate(R.layout.my_item_list,parent, false);
 
-        loadFullscreen();
+        if (MyApplicationClass.getInstance().isShowAds())   {
+            GoogleAds.loadGoogleFullscreen(context);
+        }
 
         return new MyViewHolder(view);
     }
@@ -64,15 +58,33 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> {
     public void onBindViewHolder(@NonNull MyViewHolder holder,
                                  @SuppressLint("RecyclerView") int position) {
 
-        holder.progressBar.setVisibility(View.VISIBLE);
-
         Picasso.get()
                 .load(items.get(position).getStateImage())
                 .into(holder.stateImage, new Callback() {
                     @Override
                     public void onSuccess() {
                         holder.stateName.setText(items.get(position).getStateName());
-                        holder.progressBar.setVisibility(View.GONE);
+                        holder.stateDesc.setText(items.get(position).getStateDesc());
+
+                        holder.stateCard.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+
+                                if (GoogleAds.mInterstitialAd != null)  {
+                                    GoogleAds.mInterstitialAd.show((Activity) context);
+                                }
+                                else {
+                                    ResultFragment resultFragment = new ResultFragment();
+                                    FragmentTransaction transaction = ((AppCompatActivity)context)
+                                            .getSupportFragmentManager().beginTransaction();
+
+                                    Common.CurrentStateName = items.get(position).getStateName();
+                                    Common.CurrentStateUrl = items.get(position).getStateUrl();
+
+                                    transaction.replace(R.id.main_frame,resultFragment).commit();
+                                }
+                            }
+                        });
                     }
 
                     @Override
@@ -80,24 +92,6 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> {
                         Toast.makeText(context, ""+e.getMessage(), Toast.LENGTH_SHORT).show();
                     }
                 });
-
-        holder.stateCard.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (mInterstitialAd != null) {
-                    mInterstitialAd.show((Activity) context);
-                }
-                else {
-                    ResultFragment resultFragment = new ResultFragment();
-                    FragmentTransaction transaction = ((AppCompatActivity)context)
-                            .getSupportFragmentManager().beginTransaction();
-
-                    Common.CurrentStateName = items.get(position).getStateName();
-                    Common.CurrentStateUrl = items.get(position).getStateUrl();
-                    transaction.replace(R.id.main_frame,resultFragment).commit();
-                }
-            }
-        });
     }
 
     @Override
@@ -105,50 +99,12 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> {
         return items.size();
     }
 
-    private void loadFullscreen() {
-        AdRequest adRequest = new AdRequest.Builder().build();
-
-        InterstitialAd.load(
-                context,
-                context.getString(R.string.ADMOB_FULL),
-                adRequest,
-                new InterstitialAdLoadCallback() {
-                    @Override
-                    public void onAdLoaded(@NonNull InterstitialAd interstitialAd) {
-                        mInterstitialAd = interstitialAd;
-
-                        mInterstitialAd.setFullScreenContentCallback(new FullScreenContentCallback(){
-                            @Override
-                            public void onAdDismissedFullScreenContent() {
-                                Log.d("TAG", "The ad was dismissed.");
-                            }
-
-                            @Override
-                            public void onAdFailedToShowFullScreenContent(AdError adError) {
-                                Log.d("TAG", "The ad failed to show.");
-                            }
-
-                            @Override
-                            public void onAdShowedFullScreenContent() {
-                                mInterstitialAd = null;
-                                Log.d("TAG", "The ad was shown.");
-                            }
-                        });
-                    }
-
-                    @Override
-                    public void onAdFailedToLoad(@NonNull LoadAdError loadAdError) {
-                        mInterstitialAd = null;
-                    }
-                });
-    }
 
     public class MyViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
 
         ImageView stateImage;
-        TextView stateName;
-        CardView stateCard;
-        ProgressBar progressBar;
+        TextView stateName,stateDesc;
+        RelativeLayout stateCard;
 
         ItemClickListener itemClickListener;
 
@@ -159,14 +115,17 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> {
         public MyViewHolder(@NonNull View itemView) {
             super(itemView);
 
-            stateImage = itemView.findViewById(R.id.state_image);
-            stateName= itemView.findViewById(R.id.state_name);
-            stateCard = itemView.findViewById(R.id.state_card);
-            progressBar = itemView.findViewById(R.id.progressBar);
+            stateImage = itemView.findViewById(R.id.stateImage);
+            stateName= itemView.findViewById(R.id.stateName);
+            stateDesc = itemView.findViewById(R.id.stateDesc);
+            stateCard = itemView.findViewById(R.id.stateCard);
+
+            stateName.setSelected(true);
+            stateDesc.setSelected(true);
 
             Typeface face = Typeface.createFromAsset(context.getAssets(),
                     "fonts/sport.ttf");
-            stateName.setTypeface(face);
+            stateDesc.setTypeface(face);
 
             itemView.setOnClickListener(this);
         }

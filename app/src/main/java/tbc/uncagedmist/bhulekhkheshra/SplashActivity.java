@@ -33,8 +33,10 @@ public class SplashActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         registerNotification();
         checkAppUpdate();
+
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
@@ -46,8 +48,9 @@ public class SplashActivity extends AppCompatActivity {
         tv.setTypeface(face);
 
         if (Common.isConnectedToInternet(SplashActivity.this))  {
-            startActivity(new Intent(SplashActivity.this,MainActivity.class));
-            finish();
+            SplashActivity.this.startActivity(new
+                    Intent(SplashActivity.this.getApplicationContext(), MainActivity.class));
+            SplashActivity.this.finish();
         }
         else    {
             Toast.makeText(this, "Please connect to the Internet.", Toast.LENGTH_SHORT).show();

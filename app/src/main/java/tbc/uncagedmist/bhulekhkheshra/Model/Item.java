@@ -1,15 +1,16 @@
 package tbc.uncagedmist.bhulekhkheshra.Model;
 
 public class Item {
-    private String stateId,stateName,stateImage,stateUrl;
+    private String stateId,stateName,stateImage,stateDesc,stateUrl;
 
     public Item() {
     }
 
-    public Item(String stateId, String stateName, String stateImage, String stateUrl) {
+    public Item(String stateId, String stateName, String stateImage, String stateDesc, String stateUrl) {
         this.stateId = stateId;
         this.stateName = stateName;
         this.stateImage = stateImage;
+        this.stateDesc = stateDesc;
         this.stateUrl = stateUrl;
     }
 
@@ -35,6 +36,14 @@ public class Item {
 
     public void setStateImage(String stateImage) {
         this.stateImage = stateImage;
+    }
+
+    public String getStateDesc() {
+        return stateDesc;
+    }
+
+    public void setStateDesc(String stateDesc) {
+        this.stateDesc = stateDesc;
     }
 
     public String getStateUrl() {

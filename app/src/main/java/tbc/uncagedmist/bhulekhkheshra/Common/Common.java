@@ -6,9 +6,6 @@ import android.net.NetworkInfo;
 
 public class Common {
 
-    public static final String PRIVACY_URL =
-            "https://docs.google.com/document/d/1-vjZGhK4EuVfs25YRSpjxnZxvCPoOff-N5psvab9nvQ/edit?usp=sharing";
-
     public static String CurrentStateName;
     public static String CurrentStateUrl;
 

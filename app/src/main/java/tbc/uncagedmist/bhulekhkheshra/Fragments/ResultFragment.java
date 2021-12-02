@@ -23,6 +23,7 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.monstertechno.adblocker.AdBlockerWebView;
@@ -60,11 +61,13 @@ public class ResultFragment extends Fragment {
         webView = myFragment.findViewById(R.id.webResult);
         progressBar = myFragment.findViewById(R.id.progress_bar);
         resultBack = myFragment.findViewById(R.id.resultBack);
+        TextView txtName = myFragment.findViewById(R.id.txtName);
 
         new AdBlockerWebView.init(getContext()).initializeWebView(webView);
 
         webView.setWebViewClient(new MyWebViewClient());
 
+        txtName.setText(Common.CurrentStateName.trim());
         String url = Common.CurrentStateUrl.trim();
 
         webView.getSettings().setJavaScriptEnabled(true);

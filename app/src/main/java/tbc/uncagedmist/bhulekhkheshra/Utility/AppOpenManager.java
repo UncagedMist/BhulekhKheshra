@@ -25,6 +25,7 @@ import tbc.uncagedmist.bhulekhkheshra.R;
 public class AppOpenManager implements LifecycleObserver, Application.ActivityLifecycleCallbacks {
 
     private static final String LOG_TAG = "AppOpenManager";
+
     private AppOpenAd appOpenAd = null;
 
     private AppOpenAd.AppOpenAdLoadCallback loadCallback;
@@ -52,6 +53,11 @@ public class AppOpenManager implements LifecycleObserver, Application.ActivityLi
 
         loadCallback =
                 new AppOpenAd.AppOpenAdLoadCallback() {
+                    /**
+                     * Called when an app open ad has loaded.
+                     *
+                     * @param ad the loaded app open ad.
+                     */
                     @Override
                     public void onAdLoaded(AppOpenAd ad) {
                         AppOpenManager.this.appOpenAd = ad;

@@ -9,6 +9,7 @@ import android.net.ConnectivityManager;
 import android.os.Build;
 import android.os.Bundle;
 
+import com.facebook.ads.AudienceNetworkAds;
 import com.google.android.gms.ads.MobileAds;
 import com.google.android.gms.ads.initialization.InitializationStatus;
 import com.google.android.gms.ads.initialization.OnInitializationCompleteListener;
@@ -18,33 +19,29 @@ import tbc.uncagedmist.bhulekhkheshra.Utility.MyNetworkReceiver;
 
 public class MyApplicationClass extends Application {
 
-    @SuppressLint("StaticFieldLeak")
-    private static Context context;
+    private static MyApplicationClass instance;
+
+    private boolean showAds = true;
 
     @SuppressLint("StaticFieldLeak")
     public static Activity mActivity;
     MyNetworkReceiver mNetworkReceiver;
 
-    private static AppOpenManager appOpenManager;
-
-
-    public static Context getContext() {
-        return context;
-    }
-
     @Override
     public void onCreate() {
         super.onCreate();
+        instance = this;
+
+        AudienceNetworkAds.initialize(instance);
 
         MobileAds.initialize(this, new OnInitializationCompleteListener() {
             @Override
             public void onInitializationComplete(InitializationStatus initializationStatus) { }
         });
 
-        context = getApplicationContext();
-
-        appOpenManager = new AppOpenManager(this);
-
+        if (showAds)    {
+            AppOpenManager appOpenManager = new AppOpenManager(instance);
+        }
 
         registerActivityLifecycleCallbacks(new ActivityLifecycleCallbacks() {
             @Override
@@ -91,5 +88,17 @@ public class MyApplicationClass extends Application {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             registerReceiver(mNetworkReceiver, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
         }
+    }
+
+    public static MyApplicationClass getInstance() {
+        return instance;
+    }
+
+    public boolean isShowAds() {
+        return showAds;
+    }
+
+    public void setShowAds(boolean showAds) {
+        this.showAds = showAds;
     }
 }

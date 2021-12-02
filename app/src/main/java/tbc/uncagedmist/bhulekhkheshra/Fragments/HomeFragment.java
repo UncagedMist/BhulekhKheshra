@@ -10,14 +10,18 @@ import androidx.appcompat.widget.SearchView;
 import androidx.core.view.MenuItemCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 
 import java.util.ArrayList;
 
@@ -31,20 +35,9 @@ public class HomeFragment extends Fragment {
 
     RecyclerView recyclerView;
     ArrayList<Item> itemArrayList = new ArrayList<>();
-
-    View myFragment;
+    EditText edtState;
 
     Context context;
-
-    private static HomeFragment INSTANCE = null;
-
-    public static HomeFragment getInstance()    {
-
-        if (INSTANCE == null)   {
-            INSTANCE = new HomeFragment();
-        }
-        return INSTANCE;
-    }
 
     @Override
     public void onAttach(@NonNull Activity activity) {
@@ -56,61 +49,36 @@ public class HomeFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        myFragment = inflater.inflate(R.layout.fragment_home, container, false);
-        setHasOptionsMenu(true);
+        View myFragment = inflater.inflate(R.layout.fragment_home, container, false);
 
-        recyclerView = myFragment.findViewById(R.id.recycler);
+        recyclerView = myFragment.findViewById(R.id.recyclerState);
+        edtState = myFragment.findViewById(R.id.edtState);
 
-        recyclerView.setLayoutManager(new GridLayoutManager(context,2));
+        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
-        Cursor cursor = new MyDatabase(context).getAllStateData();
-
-        while (cursor.moveToNext()) {
-            Item item = new Item(
-                    cursor.getString(0),
-                    cursor.getString(1),
-                    cursor.getString(2),
-                    cursor.getString(3)
-            );
-            itemArrayList.add(item);
-        }
-
-        MyAdapter adapter = new MyAdapter(context,itemArrayList);
-        recyclerView.setAdapter(adapter);
-
-        return myFragment;
-    }
-
-    @Override
-    public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
-        inflater.inflate(R.menu.home_menu,menu);
-
-        MenuItem searchItem = menu.findItem(R.id.action_search);
-        SearchView searchView = (SearchView) MenuItemCompat.getActionView(searchItem);
-
-        searchView.setQueryHint("Enter State Name");
-
-        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+        edtState.addTextChangedListener(new TextWatcher() {
             @Override
-            public boolean onQueryTextSubmit(String query) {
-                return false;
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
             }
 
             @Override
-            public boolean onQueryTextChange(String newText) {
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
                 ArrayList<Item> itemList = new ArrayList<>();
 
+                String edtStateName = edtState.getText().toString().trim();
+
                 for (Item stateName : itemArrayList)   {
-                    if (stateName.getStateName().toLowerCase().contains(newText.toLowerCase()))  {
+                    if (stateName.getStateName().toLowerCase().contains(edtStateName.toLowerCase()))  {
                         Cursor cursor = new MyDatabase(context).getStateByNames(
-                                newText.toLowerCase());
+                                edtStateName.toLowerCase());
 
                         while (cursor.moveToNext()) {
                             Item item = new Item(
                                     cursor.getString(0),
                                     cursor.getString(1),
                                     cursor.getString(2),
-                                    cursor.getString(3)
+                                    cursor.getString(3),
+                                    cursor.getString(4)
                             );
                             itemList.add(item);
                         }
@@ -118,11 +86,34 @@ public class HomeFragment extends Fragment {
                 }
                 MyAdapter adapter = new MyAdapter(context,itemList);
                 recyclerView.setAdapter(adapter);
+            }
 
-                return true;
+            @Override
+            public void afterTextChanged(Editable s) {
             }
         });
 
-        super.onCreateOptionsMenu(menu, inflater);
+
+        getStateDetails();
+
+        return myFragment;
+    }
+
+    private void getStateDetails() {
+        Cursor cursor = new MyDatabase(context).getAllStateData();
+
+        while (cursor.moveToNext()) {
+            Item item = new Item(
+                    cursor.getString(0),
+                    cursor.getString(1),
+                    cursor.getString(2),
+                    cursor.getString(3),
+                    cursor.getString(4)
+            );
+            itemArrayList.add(item);
+        }
+
+        MyAdapter adapter = new MyAdapter(context,itemArrayList);
+        recyclerView.setAdapter(adapter);
     }
 }
